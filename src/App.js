@@ -6,6 +6,7 @@ import { useRef, useEffect, useState } from 'react'
 import { Client } from '@notionhq/client'
 import axios from 'axios'
 import coseBilkent from 'cytoscape-cose-bilkent'
+import { dummyEdges } from './dummyEdges'
 
 const NOTION_API_KEY = process.env.REACT_APP_NOTION_API_KEY
 const DB_ID = process.env.REACT_APP_NOTION_DATABASE_ID
@@ -72,24 +73,27 @@ function App() {
 
     // edges
     // 일단 랜덤하게 연결함
-    for (let i = 0; i < 200; i++) {
-      let edge_num_rand = Math.floor(Math.random() * 50)
-      for (let j = 0; j < edge_num_rand; j++) {
-        let rand = Math.floor(Math.random() * 200)
-        const edge = {
-          data: {
-            id: `e${i}`,
-            source: temp[i].properties.code.rich_text[0].plain_text,
-            target: temp[rand].properties.code.rich_text[0].plain_text,
-          },
-        }
-        edges.push(edge)
-      }
-    }
+    // let edge_id = 0
+    // for (let i = 0; i < 200; i++) {
+    //   let edge_num_rand = Math.floor(Math.random() * 1) + 1
+    //   for (let j = 0; j < edge_num_rand; j++) {
+    //     let rand = Math.floor(Math.random() * 200)
+    //     const edge = {
+    //       data: {
+    //         id: `e${edge_id++}`,
+    //         source: temp[i].properties.code.rich_text[0].plain_text,
+    //         target: temp[rand].properties.code.rich_text[0].plain_text,
+    //       },
+    //     }
+    //     edges.push(edge)
+    //   }
+    // }
+
+    // console.log(edges)
 
     const nodes_temp = {
       nodes: nodes,
-      edges: edges,
+      edges: dummyEdges, // dummy 데이터
     }
 
     // console.log('nodes_temp', nodes_temp)
@@ -176,10 +180,12 @@ function App() {
         e.style('source-arrow-color', predecessorsColor)
         setOpacityElement(e, 0.5)
       })
+
+      // 이웃한 엣지와 노드
       target_element.neighborhood().each(function (e) {
-        // 이웃한 엣지와 노드
         setOpacityElement(e, 1)
       })
+
       // target_element.style(
       //   'width',
       //   // Math.max(parseFloat(target_element.style('width')), nodeActiveSize)
@@ -230,19 +236,18 @@ function App() {
             'background-color': '#666',
             label: 'data(label)',
             width: function (ele) {
-              console.log('ele.data(trend)', ele.data('trend'))
               // return nodeMaxSize * pageRank.rank('#' + ele.id()) + nodeMinSize
-              return nodeMinSize + ele.data('trend') * 20
+              return nodeMinSize + ele.data('trend') * 10
             },
             height: function (ele) {
               // return nodeMaxSize * pageRank.rank('#' + ele.id()) + nodeMinSize
-              return nodeMinSize + ele.data('trend') * 20
+              return nodeMinSize + ele.data('trend') * 10
             },
             'font-size': function (ele) {
               // return fontMaxSize * pageRank.rank('#' + ele.id()) + fontMinSize
               return fontMinSize + ele.data('trend') * 5
             },
-            padding: 15,
+            padding: 3,
           },
         },
         {
