@@ -1,11 +1,11 @@
 {
   "rewrites": [
     {
-      "source": "/v1/:path*",
+      "source": "/:path*",
       "destination": "https://api.notion.com/:path*"
     },
     {
-      "source": "/v1/:path*/",
+      "source": "/:path*/",
       "destination": "https://api.notion.com/:path*/"
     }
   ]
