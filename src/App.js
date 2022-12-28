@@ -1,12 +1,8 @@
-import logo from './logo.svg'
 import './App.css'
-// import Cytoscape from './component/Cytoscape';
 import cytoscape from 'cytoscape'
 import { useRef, useEffect, useState } from 'react'
-import { Client } from '@notionhq/client'
 import axios from 'axios'
 import coseBilkent from 'cytoscape-cose-bilkent'
-// import { dummyEdges } from './dummyEdges'
 import localEdgeData from './temp.json'
 
 const NOTION_API_KEY = process.env.REACT_APP_NOTION_API_KEY
@@ -144,26 +140,6 @@ function App() {
 
     const edges = []
 
-    // edges
-    // 일단 랜덤하게 연결함
-    // let edge_id = 0
-    // for (let i = 0; i < 200; i++) {
-    //   let edge_num_rand = Math.floor(Math.random() * 1) + 1
-    //   for (let j = 0; j < edge_num_rand; j++) {
-    //     let rand = Math.floor(Math.random() * 200)
-    //     const edge = {
-    //       data: {
-    //         id: `e${edge_id++}`,
-    //         source: temp[i].properties.code.rich_text[0].plain_text,
-    //         target: temp[rand].properties.code.rich_text[0].plain_text,
-    //       },
-    //     }
-    //     edges.push(edge)
-    //   }
-    // }
-
-    // console.log(edges)
-
     const nodes_temp = {
       nodes: nodes,
       edges: localEdgeData, // 로컬 데이터
@@ -241,7 +217,6 @@ function App() {
           e.style('arrow-scale', arrowScale)
         }
         e.style('color', nodeColor)
-        // e.style('background-color', predecessorsColor)
         e.style('background-color', e.data('color'))
         e.style('line-color', predecessorsColor)
         e.style('source-arrow-color', predecessorsColor)
@@ -267,7 +242,6 @@ function App() {
       target_cy.edges().forEach(function (target) {
         target.style('line-color', edgeColor)
         target.style('source-arrow-color', edgeColor)
-        // target.style('width', edgeWidth)
         target.style('arrow-scale', arrowScale)
         target.style('opacity', 1)
       })
@@ -284,23 +258,14 @@ function App() {
             color: '#666',
             // 노드 색
             'background-color': '#666',
-            // color: function (ele) {
-            //   return ele.data('color')
-            // },
-            // 'background-color': function (ele) {
-            //   return ele.data('color')
-            // },
             label: 'data(label)',
             width: function (ele) {
-              // return nodeMaxSize * pageRank.rank('#' + ele.id()) + nodeMinSize
               return nodeMinSize + ele.data('trend') * 10
             },
             height: function (ele) {
-              // return nodeMaxSize * pageRank.rank('#' + ele.id()) + nodeMinSize
               return nodeMinSize + ele.data('trend') * 10
             },
             'font-size': function (ele) {
-              // return fontMaxSize * pageRank.rank('#' + ele.id()) + fontMinSize
               return fontMinSize + ele.data('trend') * 5
             },
             padding: 3,
@@ -311,10 +276,7 @@ function App() {
           style: {
             // width: 3,
             width: function (ele) {
-              // return nodeMaxSize * pageRank.rank('#' + ele.id()) + nodeMinSize
-
               const edgeWidth = ele.data('width')
-
               if (edgeWidth < 10) {
                 return 0.5
               } else if (edgeWidth < 40) {
