@@ -6,7 +6,8 @@ import { useRef, useEffect, useState } from 'react'
 import { Client } from '@notionhq/client'
 import axios from 'axios'
 import coseBilkent from 'cytoscape-cose-bilkent'
-import { dummyEdges } from './dummyEdges'
+// import { dummyEdges } from './dummyEdges'
+import localEdgeData from './temp.json'
 
 const NOTION_API_KEY = process.env.REACT_APP_NOTION_API_KEY
 const DB_ID = process.env.REACT_APP_NOTION_DATABASE_ID
@@ -59,15 +60,87 @@ function App() {
       const company_code = comp.properties.code.rich_text[0].plain_text
       const company_name = comp.properties.company.title[0].plain_text
       const company_trend = comp.properties.trend.number
+      const company_sector = comp.properties.sector.select.name
+
+      let company_nodeColor
+      switch (company_sector) {
+        case 'KRX 건설':
+          company_nodeColor = '#1abc9c'
+          break
+        case 'KRX 보험':
+          company_nodeColor = '#2ecc71'
+          break
+        case 'KRX 화학':
+          company_nodeColor = '#3498db'
+          break
+        case 'KRX 정보기술':
+          company_nodeColor = '#9b59b6'
+          break
+        case 'KRX 필수소비재':
+          company_nodeColor = '#34495e'
+          break
+        case 'KRX 헬스케어':
+          company_nodeColor = '#f1c40f'
+          break
+        case 'KRX 방송통신':
+          company_nodeColor = '#e74c3c'
+          break
+        case 'KRX 철강':
+          company_nodeColor = '#d35400'
+          break
+        case 'KRX 증권':
+          company_nodeColor = '#540375'
+          break
+        case 'KRX 자동차':
+          company_nodeColor = '#FF7000'
+          break
+        case 'KRX 경기소비재':
+          company_nodeColor = '#FD8A8A'
+          break
+        case 'KRX 기계장비':
+          company_nodeColor = '#FFBF00'
+          break
+        case 'KRX 은행':
+          company_nodeColor = '#E14D2A'
+          break
+        case 'KRX 운송':
+          company_nodeColor = '#FD841F'
+          break
+        case 'KRX 미디어&엔터테인먼트':
+          company_nodeColor = '#3E6D9C'
+          break
+        case 'KRX 유틸리티':
+          company_nodeColor = '#001253'
+          break
+        case 'KRX 반도체':
+          company_nodeColor = '#FD8A8A'
+          break
+        case '보안':
+          company_nodeColor = '#FD8A8A'
+          break
+        case '지주':
+          company_nodeColor = '#FD8A8A'
+          break
+        case '방산':
+          company_nodeColor = '#FD8A8A'
+          break
+        default:
+          company_nodeColor = '#57606f'
+          break
+      }
       const node = {
         data: {
           id: company_code,
           label: company_name,
           trend: company_trend,
+          sector: company_sector,
+          color: company_nodeColor,
         },
       }
       nodes.push(node)
     }
+
+    // console.log(nodes)
 
     const edges = []
 
@@ -93,7 +166,7 @@ function App() {
 
     const nodes_temp = {
       nodes: nodes,
-      edges: dummyEdges, // dummy 데이터
+      edges: localEdgeData, // 로컬 데이터
     }
 
     // console.log('nodes_temp', nodes_temp)
@@ -105,14 +178,6 @@ function App() {
   }, [])
 
   useEffect(() => {
-    // rank를 활용하기 위해 data만 입력한 cytoscape 객체입니다
-    const cy_for_rank = cytoscape({
-      elements: data,
-    })
-
-    // elements들의 rank들입니다.
-    const pageRank = cy_for_rank.elements().pageRank()
-
     // node & font 크기 값
     const nodeMaxSize = 50
     const nodeMinSize = 5
@@ -159,11 +224,12 @@ function App() {
       target_element.successors().each(function (e) {
         // 상위  엣지와 노드
         if (e.isEdge()) {
-          e.style('width', edgeWidth)
+          // e.style('width', edgeWidth)
           e.style('arrow-scale', arrowScale)
         }
         e.style('color', nodeColor)
-        e.style('background-color', successorColor)
+        // e.style('background-color', successorColor)
+        e.style('background-color', e.data('color'))
         e.style('line-color', successorColor)
         e.style('source-arrow-color', successorColor)
         setOpacityElement(e, 0.5)
@@ -171,11 +237,12 @@ function App() {
       target_element.predecessors().each(function (e) {
         // 하위 엣지와 노드
         if (e.isEdge()) {
-          e.style('width', edgeWidth)
+          // e.style('width', edgeWidth)
           e.style('arrow-scale', arrowScale)
         }
         e.style('color', nodeColor)
-        e.style('background-color', predecessorsColor)
+        // e.style('background-color', predecessorsColor)
+        e.style('background-color', e.data('color'))
         e.style('line-color', predecessorsColor)
         e.style('source-arrow-color', predecessorsColor)
         setOpacityElement(e, 0.5)
@@ -185,22 +252,6 @@ function App() {
       target_element.neighborhood().each(function (e) {
         setOpacityElement(e, 1)
       })
-
-      // target_element.style(
-      //   'width',
-      //   // Math.max(parseFloat(target_element.style('width')), nodeActiveSize)
-      //   target_element.style('width') * 1.2
-      // )
-      // target_element.style(
-      //   'height',
-      //   // Math.max(parseFloat(target_element.style('height')), nodeActiveSize)
-      //   target_element.style('height') * 1.2
-      // )
-      // target_element.style(
-      //   'font-size',
-      //   // Math.max(parseFloat(target_element.style('font-size')), fontActiveSize)
-      //   target_element.style('font-size') * 1.2
-      // )
     }
 
     function setOpacityElement(target_element, degree) {
@@ -210,17 +261,13 @@ function App() {
     function setResetFocus(target_cy) {
       target_cy.nodes().forEach(function (target) {
         target.style('background-color', nodeColor)
-        // var rank = pageRank.rank(target)
-        // target.style('width', nodeMaxSize * rank + nodeMinSize)
-        // target.style('height', nodeMaxSize * rank + nodeMinSize)
-        // target.style('font-size', fontMaxSize * rank + fontMinSize)
         target.style('color', nodeColor)
         target.style('opacity', 1)
       })
       target_cy.edges().forEach(function (target) {
         target.style('line-color', edgeColor)
         target.style('source-arrow-color', edgeColor)
-        target.style('width', edgeWidth)
+        // target.style('width', edgeWidth)
         target.style('arrow-scale', arrowScale)
         target.style('opacity', 1)
       })
@@ -233,7 +280,16 @@ function App() {
         {
           selector: 'node',
           style: {
+            // 노드 라벨 컬러
+            color: '#666',
+            // 노드 색
             'background-color': '#666',
+            // color: function (ele) {
+            //   return ele.data('color')
+            // },
+            // 'background-color': function (ele) {
+            //   return ele.data('color')
+            // },
             label: 'data(label)',
             width: function (ele) {
               // return nodeMaxSize * pageRank.rank('#' + ele.id()) + nodeMinSize
@@ -253,7 +309,22 @@ function App() {
         {
           selector: 'edge',
           style: {
-            width: 3,
+            // width: 3,
+            width: function (ele) {
+              // return nodeMaxSize * pageRank.rank('#' + ele.id()) + nodeMinSize
+
+              const edgeWidth = ele.data('width')
+
+              if (edgeWidth < 10) {
+                return 0.5
+              } else if (edgeWidth < 40) {
+                return 2
+              } else if (edgeWidth < 60) {
+                return 4
+              } else if (edgeWidth < 100) {
+                return 6
+              } else return 8
+            },
           },
         },
       ],
